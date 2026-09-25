@@ -1450,7 +1450,7 @@ main {
 .payment-button {
   background: var(--orange);
   border: 0;
-  color: #292919;
+  color: #fff;
   font-weight: 700;
   font-size: 11px;
   padding: 12px 17px;

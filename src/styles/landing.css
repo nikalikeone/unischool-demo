@@ -258,7 +258,7 @@ svg {
 }
 .button.orange {
   background: var(--orange);
-  color: #292d23;
+  color: #fff;
 }
 .button svg {
   width: 18px;
