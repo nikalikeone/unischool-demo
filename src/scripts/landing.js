@@ -1,4 +1,4 @@
-import { base, signIn, isSignedIn } from './auth.js';
+import { base, signIn, isSignedIn, homeRoute, role } from './auth.js';
 const $ = (selector) => document.querySelector(selector);
 const icon = (name) => `<svg aria-hidden="true"><use href="#l-${name}"/></svg>`;
 const safe = (value) =>
@@ -245,8 +245,15 @@ function loginMarkup() {
   return `<span class="eyebrow">ТВОЁ ПРОСТРАНСТВО ДЛЯ УЧЁБЫ</span><h2 id="auth-title">С возвращением!</h2><p class="dialog-subtitle">Войди в готовый демонстрационный профиль.</p><form class="auth-form login-form" id="login-form"><label class="field-label">Логин<input name="login" autocomplete="username" placeholder="Твой логин" required maxlength="80" autocapitalize="none" spellcheck="false"/></label><label class="field-label">Пароль<input type="password" name="password" autocomplete="current-password" placeholder="Твой пароль" required maxlength="128"/></label><p class="form-error" id="login-error" role="alert" hidden></p><button class="button blue" type="submit">Войти ${icon('arrow')}</button></form><p class="demo-note">Учебный демопрофиль. Не вводи здесь пароли от других сервисов. Прогресс сохраняется только в этом браузере.</p>`;
 }
 function openAuth(mode) {
-  if (mode === 'login' && isSignedIn()) {
-    location.href = `${base}learn/`;
+  if (
+    mode === 'login' &&
+    isSignedIn() &&
+    !(
+      new URLSearchParams(location.search).get('role') === 'teacher' &&
+      role() !== 'teacher'
+    )
+  ) {
+    location.href = homeRoute();
     return;
   }
   normaliseSelection();
@@ -334,7 +341,7 @@ $('#auth-content').addEventListener('submit', async (e) => {
     try {
       const data = new FormData(form);
       if (await signIn(data.get('login'), data.get('password'))) {
-        location.href = `${base}learn/`;
+        location.href = homeRoute();
         return;
       }
       error.textContent =

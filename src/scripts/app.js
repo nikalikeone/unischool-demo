@@ -1,4 +1,4 @@
-import { requireSession, signOut } from './auth.js';
+import { requireSession, signOut, role, base } from './auth.js';
 requireSession();
 const $ = (selector) => document.querySelector(selector);
 const icon = (name) => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
@@ -77,7 +77,9 @@ let current =
 let firstState = Object.hasOwn(stateNames, saved.firstState)
   ? saved.firstState
   : 'available';
-let secondState = ['available', 'review'].includes(saved.secondState)
+let secondState = ['available', 'review', 'revision', 'accepted'].includes(
+  saved.secondState,
+)
   ? saved.secondState
   : 'available';
 let messages =
@@ -143,7 +145,8 @@ function renderSidebar() {
       return `<button class="lesson-link ${current === index ? 'active' : ''}" data-lesson="${index}" ${current === index ? 'aria-current="page"' : ''}>${icon(lesson.type === 'video' ? 'play' : lesson.type === 'text' ? 'book' : 'paper')}<span>${lesson.short}<small>${status ? stateNames[status] : lesson.duration}</small></span>${status === 'accepted' ? '<span class="state-icon">✓</span>' : status === 'locked' ? icon('lock') : ''}</button>`;
     })
     .join('');
-  const count = firstState === 'accepted' ? 1 : 0;
+  const count =
+    Number(firstState === 'accepted') + Number(secondState === 'accepted');
   $('#progress-label').textContent = `${count} из 2 заданий`;
   $('#course-progress').value = count;
 }
@@ -161,10 +164,13 @@ function threadContent(index, status) {
   let html = messages[index]
     .map(
       (message) =>
-        `<div class="thread-message"><div class="thread-author">Александра <small>${message.submission ? 'Работа отправлена' : 'Вопрос преподавателю'}</small></div><p>${escapeHtml(message.text)}</p>${Array.isArray(message.files) ? message.files.map((name) => `<span class="attachment-label">${escapeHtml(name)}</span>`).join('') : ''}</div>`,
+        `<div class="thread-message ${message.teacher ? 'teacher' : ''}"><div class="thread-author">${message.teacher ? 'Елена Андреевна' : 'Александра'} <small>${message.teacher ? 'Преподаватель' : message.submission ? 'Работа отправлена' : 'Вопрос преподавателю'}</small>${message.grade ? `<span class="grade">Отметка <b>${escapeHtml(message.grade)}</b></span>` : ''}</div><p>${escapeHtml(message.text)}</p>${Array.isArray(message.files) ? message.files.map((name) => `<span class="attachment-label">${escapeHtml(name)}</span>`).join('') : ''}</div>`,
     )
     .join('');
-  if (['accepted', 'revision'].includes(status)) {
+  if (
+    ['accepted', 'revision'].includes(status) &&
+    !messages[index].some((m) => m.teacher && m.decision === status)
+  ) {
     if (!html)
       html =
         '<div class="thread-message"><div class="thread-author">Александра <small>Демонстрационная работа</small></div><p>1. x = 4. Проверка: 2 × 4 + 3 = 11.<br/>2. x = 5. Проверка: 5 × 5 − 7 = 18.</p></div>';
@@ -202,7 +208,7 @@ function render() {
     $('#next').hidden = true;
     $('#page-position').textContent = 'Твой учебный кабинет';
     $('#lesson-content').innerHTML =
-      `<section class="dashboard-welcome"><div><span class="eyebrow">ТВОЙ МАЛЕНЬКИЙ ШАГ СЕГОДНЯ</span><h2>Сложное становится<br/><em>понятным.</em></h2><p>Продолжай в своём темпе. Уроки, практика и поддержка преподавателя — всё рядом.</p><button id="continue-course" class="primary-button">Продолжить обучение ${icon('arrow')}</button></div><div class="dashboard-equation" aria-hidden="true"><span>2x + 3 = 11</span><b>x = 4 <i>✓</i></b><small>У тебя всё получится</small></div></section><div class="dashboard-section-title"><h2>Мои предметы</h2><span>7 класс · Юни 1</span></div><div class="dashboard-grid"><section class="dashboard-course"><div class="dashboard-course-art"><span>x²</span><small>ДОСТУП ОТКРЫТ</small><b>Математика</b><p>Понять. Попробовать. Получится.</p></div><div class="dashboard-course-body"><span class="eyebrow">АЛГЕБРА · 7 КЛАСС</span><h3>Линейные уравнения</h3><p>Видеодемонстрация, 2 конспекта, самопроверка и 2 домашних задания.</p><div class="dashboard-progress"><span>${firstState === 'accepted' ? '1' : '0'} из 2 работ принято</span><strong>${firstState === 'accepted' ? '50' : '0'}%</strong></div><progress value="${firstState === 'accepted' ? 1 : 0}" max="2" aria-label="Прогресс по математике"></progress><button id="open-course" class="primary-button">Открыть предмет ↗</button></div></section><div class="dashboard-side"><section class="dashboard-guide"><span class="guide-symbol">✳</span><span class="eyebrow">ВКЛЮЧЕНО В ТВОЙ ТАРИФ</span><h3>Как учиться<br/>в Юнискул</h3><p>Простое начало для ученика и родителя. Здесь будут все необходимые инструкции.</p><button id="dashboard-guide" class="outline-button">Открыть раздел ↗</button></section><section class="dashboard-demo"><strong>Можно смело пробовать</strong><p>Это демопрофиль. После отправки работы выбери в нижней панели «Принято»: появится отметка и откроется сдача следующего задания. Настоящих платежей и отправки сообщений здесь нет.</p></section></div></div>`;
+      `<section class="dashboard-welcome"><div><span class="eyebrow">ТВОЙ МАЛЕНЬКИЙ ШАГ СЕГОДНЯ</span><h2>Сложное становится<br/><em>понятным.</em></h2><p>Продолжай в своём темпе. Уроки, практика и поддержка преподавателя — всё рядом.</p><button id="continue-course" class="primary-button">Продолжить обучение ${icon('arrow')}</button></div><div class="dashboard-equation" aria-hidden="true"><span>2x + 3 = 11</span><b>x = 4 <i>✓</i></b><small>У тебя всё получится</small></div></section><div class="dashboard-section-title"><h2>Мои предметы</h2><span>7 класс · Юни 1</span></div><div class="dashboard-grid"><section class="dashboard-course"><div class="dashboard-course-art"><span>x²</span><small>ДОСТУП ОТКРЫТ</small><b>Математика</b><p>Понять. Попробовать. Получится.</p></div><div class="dashboard-course-body"><span class="eyebrow">АЛГЕБРА · 7 КЛАСС</span><h3>Линейные уравнения</h3><p>Видеодемонстрация, 2 конспекта, самопроверка и 2 домашних задания.</p><div class="dashboard-progress"><span>${Number(firstState === 'accepted') + Number(secondState === 'accepted')} из 2 работ принято</span><strong>${(Number(firstState === 'accepted') + Number(secondState === 'accepted')) * 50}%</strong></div><progress value="${Number(firstState === 'accepted') + Number(secondState === 'accepted')}" max="2" aria-label="Прогресс по математике"></progress><button id="open-course" class="primary-button">Открыть предмет ↗</button></div></section><div class="dashboard-side"><section class="dashboard-guide"><span class="guide-symbol">✳</span><span class="eyebrow">ВКЛЮЧЕНО В ТВОЙ ТАРИФ</span><h3>Как учиться<br/>в Юнискул</h3><p>Простое начало для ученика и родителя. Здесь будут все необходимые инструкции.</p><button id="dashboard-guide" class="outline-button">Открыть раздел ↗</button></section><section class="dashboard-demo"><strong>Можно смело пробовать</strong><p>Это демопрофиль. После отправки работы выбери в нижней панели «Принято»: появится отметка и откроется сдача следующего задания. Настоящих платежей и отправки сообщений здесь нет.</p></section></div></div>`;
     renderSidebar();
     $('#continue-course').onclick = () => navigate(current);
     $('#open-course').onclick = () => navigate(current);
@@ -511,4 +517,26 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 render();
+if (role() === 'teacher') {
+  const back = document.createElement('a');
+  back.href = `${base}teacher/`;
+  back.className = 'dashboard-link';
+  back.textContent = '← Вернуться к проверке работ';
+  $('#main').prepend(back);
+}
+messages.forEach((thread, index) => {
+  const decision = [...thread].reverse().find((m) => m.teacher && m.decision);
+  if (decision)
+    addNotification(
+      decision.decision === 'accepted'
+        ? `Работа принята · Отметка ${decision.grade}`
+        : 'Работа возвращена на доработку',
+      decision.text,
+      index ? 4 : 2,
+    );
+});
+window.addEventListener('storage', (e) => {
+  if (e.key === storageKey || e.key === 'unischool-demo-session-v1')
+    location.reload();
+});
 $('#contents-toggle').setAttribute('aria-expanded', String(innerWidth > 850));

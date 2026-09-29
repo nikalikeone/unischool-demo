@@ -8,11 +8,25 @@ export function isSignedIn() {
   try {
     const session = JSON.parse(localStorage.getItem(sessionKey) || 'null');
     return (
-      session?.profile === 'alexandra-demo' && session.expires > Date.now()
+      ['alexandra-demo', 'teacher-demo'].includes(session?.profile) &&
+      session.expires > Date.now()
     );
   } catch {
     return false;
   }
+}
+export function role() {
+  try {
+    return JSON.parse(localStorage.getItem(sessionKey))?.profile ===
+      'teacher-demo'
+      ? 'teacher'
+      : 'student';
+  } catch {
+    return 'student';
+  }
+}
+export function homeRoute() {
+  return `${base}${role() === 'teacher' ? 'teacher' : 'learn'}/`;
 }
 export async function signIn(login, password) {
   const key = await crypto.subtle.importKey(
@@ -35,19 +49,23 @@ export async function signIn(login, password) {
   const hash = Array.from(new Uint8Array(bits), (b) =>
     b.toString(16).padStart(2, '0'),
   ).join('');
-  if (login.trim().toLowerCase() !== 'demo' || hash !== verifier) return false;
+  const username = login.trim().toLowerCase();
+  if (!['demo', 'teacher'].includes(username) || hash !== verifier)
+    return false;
   localStorage.setItem(
     sessionKey,
     JSON.stringify({
-      profile: 'alexandra-demo',
+      profile: username === 'teacher' ? 'teacher-demo' : 'alexandra-demo',
       expires: Date.now() + 7 * 86400000,
     }),
   );
   return true;
 }
-export function requireSession() {
-  if (!isSignedIn()) {
-    location.replace(`${base}?login=1`);
+export function requireSession(requiredRole) {
+  if (!isSignedIn() || (requiredRole && role() !== requiredRole)) {
+    location.replace(
+      `${base}?login=1${requiredRole === 'teacher' ? '&role=teacher' : ''}`,
+    );
     throw new Error('Demo sign-in required');
   }
   document.documentElement.removeAttribute('data-auth-pending');
