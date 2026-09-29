@@ -1,4 +1,5 @@
 import { base, signIn, isSignedIn, homeRoute, role } from './auth.js';
+import { getPlan, subjectCountLabel } from './plans.js';
 const $ = (selector) => document.querySelector(selector);
 const icon = (name) => `<svg aria-hidden="true"><use href="#l-${name}"/></svg>`;
 const safe = (value) =>
@@ -71,7 +72,8 @@ let period = 1;
 let selectedPlan = 1;
 let selectedSubjects = ['math'];
 let desiredSubject = null;
-const amount = (plan) => (plan === 1 ? 990 : 1790) * period;
+const amount = (plan) => getPlan(plan).monthly * period;
+const chosenPlan = () => getPlan(selectedPlan);
 const money = (value) => new Intl.NumberFormat('ru-RU').format(value) + ' ₽';
 const months = () =>
   period === 1 ? '1 месяц' : period === 3 ? '3 месяца' : '6 месяцев';
@@ -209,9 +211,9 @@ function normaliseSelection() {
   const allowed = availableSubjects();
   selectedSubjects = selectedSubjects
     .filter((id) => allowed.includes(id))
-    .slice(0, selectedPlan);
+    .slice(0, chosenPlan().subjects);
   for (const id of allowed) {
-    if (selectedSubjects.length >= selectedPlan) break;
+    if (selectedSubjects.length >= chosenPlan().subjects) break;
     if (!selectedSubjects.includes(id)) selectedSubjects.push(id);
   }
 }
@@ -234,12 +236,17 @@ function renderPickers() {
   $('#subject-pickers').innerHTML = selectedSubjects
     .map(
       (id, index) =>
-        `<label class="field-label">${selectedPlan === 1 ? 'Предмет' : `Предмет ${index + 1}`}<select name="subject-${index}" data-pick="${index}" required>${subjectOptions(id)}</select></label>`,
+        `<label class="field-label">${selectedPlan === 7 ? (index === 0 ? 'Предмет с онлайн-занятиями' : `Дополнительный предмет ${index}`) : chosenPlan().subjects === 1 ? 'Предмет' : `Предмет ${index + 1}`}<select name="subject-${index}" data-pick="${index}" required>${subjectOptions(id)}</select></label>`,
     )
     .join('');
 }
+function registrationFields() {
+  if (isSignedIn())
+    return '<p class="selection-note">Вы вошли в демопрофиль. Повторная регистрация не требуется.</p>';
+  return `<label class="field-label">Имя ученика<input name="student" autocomplete="given-name" placeholder="Как тебя зовут?" required maxlength="80"/></label><label class="field-label">Электронная почта<input name="email" type="email" autocomplete="email" placeholder="name@example.ru" required maxlength="200"/></label><label class="field-label">Пароль<input name="password" type="password" autocomplete="new-password" placeholder="Не менее 8 символов" required minlength="8" maxlength="128"/></label>`;
+}
 function registerMarkup() {
-  return `<span class="eyebrow">СНАЧАЛА ЗНАКОМИМСЯ</span><h2 id="auth-title">Создай свой аккаунт</h2><p class="dialog-subtitle">Он сохранит твои уроки, работы и прогресс.</p><div class="order-summary"><div>Юни ${selectedPlan} · ${months()}<small>${selectedPlan === 1 ? 'Один предмет' : 'Два предмета'} в выбранном классе</small></div><strong>${money(amount(selectedPlan))}</strong></div><form id="registration-form" class="auth-form"><label class="field-label">Класс ученика<select id="registration-grade" required>${classOptions()}</select></label><div class="field-grid" id="subject-pickers"></div><p class="selection-note">Доступ только к выбранному классу. «Как учиться в Юнискул» включено.</p><label class="field-label">Имя ученика<input name="student" autocomplete="given-name" placeholder="Как тебя зовут?" required maxlength="80"/></label><label class="field-label">Электронная почта<input name="email" type="email" autocomplete="email" placeholder="name@example.ru" required maxlength="200"/></label><label class="field-label">Пароль<input name="password" type="password" autocomplete="new-password" placeholder="Не менее 8 символов" required minlength="8" maxlength="128"/></label><p id="registration-error" class="form-error" role="alert" hidden></p><button class="button orange" type="submit">Продолжить к оплате ${icon('arrow')}</button></form><p class="auth-switch">Уже есть аккаунт? <button class="text-button" id="switch-login">Войти</button></p><p class="demo-note">Прототип: данные не отправляются и аккаунт не создаётся. Для проверки можно использовать вымышленные данные. Регистрация и оплата будут подключены отдельно.</p>`;
+  return `<span class="eyebrow">${isSignedIn() ? 'ТВОЙ ПЛАН ОБУЧЕНИЯ' : 'СНАЧАЛА ЗНАКОМИМСЯ'}</span><h2 id="auth-title">${isSignedIn() ? 'Выбери свои предметы' : 'Создай свой аккаунт'}</h2><p class="dialog-subtitle">${isSignedIn() ? 'Выбери предметы для нового тарифа.' : 'Аккаунт сохранит твои уроки, работы и прогресс.'}</p><div class="order-summary"><div>${chosenPlan().name} · ${months()}<small>${subjectCountLabel(chosenPlan().subjects)} в выбранном классе</small></div><strong>${money(amount(selectedPlan))}</strong></div><form id="registration-form" class="auth-form"><label class="field-label">Класс ученика<select id="registration-grade" required>${classOptions()}</select></label><div class="field-grid" id="subject-pickers"></div><p class="selection-note">Доступ только к выбранному классу. «Как учиться в Юнискул» включено.</p>${registrationFields()}<p id="registration-error" class="form-error" role="alert" hidden></p><button class="button orange" type="submit">Продолжить к оплате ${icon('arrow')}</button></form>${isSignedIn() ? '' : '<p class="auth-switch">Уже есть аккаунт? <button class="text-button" id="switch-login">Войти</button></p>'}<p class="demo-note">Прототип: данные не отправляются и аккаунт не создаётся. Для проверки можно использовать вымышленные данные. Регистрация и оплата будут подключены отдельно.</p>`;
 }
 function loginMarkup() {
   return `<span class="eyebrow">ТВОЁ ПРОСТРАНСТВО ДЛЯ УЧЁБЫ</span><h2 id="auth-title">С возвращением!</h2><p class="dialog-subtitle">Войди в готовый демонстрационный профиль.</p><form class="auth-form login-form" id="login-form"><label class="field-label">Логин<input name="login" autocomplete="username" placeholder="Твой логин" required maxlength="80" autocapitalize="none" spellcheck="false"/></label><label class="field-label">Пароль<input type="password" name="password" autocomplete="current-password" placeholder="Твой пароль" required maxlength="128"/></label><p class="form-error" id="login-error" role="alert" hidden></p><button class="button blue" type="submit">Войти ${icon('arrow')}</button></form><p class="demo-note">Учебный демопрофиль. Не вводи здесь пароли от других сервисов. Прогресс сохраняется только в этом браузере.</p>`;
@@ -265,7 +272,7 @@ function openAuth(mode) {
 }
 function renderCheckout() {
   $('#auth-content').innerHTML =
-    `<span class="eyebrow">ПРОВЕРЬ СВОЙ ВЫБОР</span><h2 id="auth-title">Твой план обучения</h2><p class="dialog-subtitle">Так будет выглядеть заказ перед оплатой.</p><div class="checkout-summary"><div><span>Тариф</span><strong>Юни ${selectedPlan}</strong></div><div><span>Класс</span><strong>${grade}</strong></div><div><span>Предметы</span><strong>${selectedSubjects.map(subjectName).join('<br/>')}</strong></div><div><span>Срок доступа</span><strong>${months()}</strong></div><div><span>Включено</span><strong>«Как учиться в Юнискул»</strong></div><div class="checkout-total"><span>Итого</span><strong>${money(amount(selectedPlan))}</strong></div></div><p class="demo-note">Это предварительный расчёт. Аккаунт не создан, оплата не проведена. Реальную регистрацию и платёжный сервис подключим на этапе разработки платформы.</p><div class="checkout-actions"><button class="button blue" id="edit-selection">Изменить выбор</button></div>`;
+    `<span class="eyebrow">ПРОВЕРЬ СВОЙ ВЫБОР</span><h2 id="auth-title">Твой план обучения</h2><p class="dialog-subtitle">Так будет выглядеть заказ перед оплатой.</p><div class="checkout-summary"><div><span>Тариф</span><strong>${chosenPlan().name}</strong></div><div><span>Класс</span><strong>${grade}</strong></div><div><span>Предметы</span><strong>${selectedSubjects.map((id, index) => `${subjectName(id)}${selectedPlan === 7 ? (index === 0 ? ' — онлайн-занятия' : ' — материалы') : ''}`).join('<br/>')}</strong></div><div><span>Срок доступа</span><strong>${months()}</strong></div><div><span>Включено</span><strong>«Как учиться в Юнискул»</strong></div><div class="checkout-total"><span>Итого</span><strong>${money(amount(selectedPlan))}</strong></div></div><p class="demo-note">Это демонстрация заказа; оплата не проведена. Реальную регистрацию и платёжный сервис подключим на этапе разработки платформы.</p><div class="checkout-actions"><button class="button blue" id="edit-selection">Изменить выбор</button></div>`;
   $('#auth-dialog').scrollTop = 0;
 }
 document.querySelectorAll('[data-grade]').forEach(
@@ -304,6 +311,7 @@ document.querySelectorAll('[data-plan]').forEach(
   (button) =>
     (button.onclick = () => {
       selectedPlan = Number(button.dataset.plan);
+
       if (desiredSubject && availableSubjects().includes(desiredSubject))
         selectedSubjects = [desiredSubject];
       openAuth('register');
@@ -341,7 +349,7 @@ $('#auth-content').addEventListener('submit', async (e) => {
     try {
       const data = new FormData(form);
       if (await signIn(data.get('login'), data.get('password'))) {
-        location.href = homeRoute();
+        location.href = role() === 'student' ? base : homeRoute();
         return;
       }
       error.textContent =
@@ -356,9 +364,9 @@ $('#auth-content').addEventListener('submit', async (e) => {
     return;
   }
   if (e.target.id !== 'registration-form') return;
-  if (new Set(selectedSubjects).size !== selectedPlan) {
+  if (new Set(selectedSubjects).size !== chosenPlan().subjects) {
     $('#registration-error').textContent =
-      'Выбери два разных предмета для тарифа «Юни 2».';
+      `Выбери ${chosenPlan().subjects} разных предмета для тарифа «${chosenPlan().name}».`;
     $('#registration-error').hidden = false;
     return;
   }
@@ -409,5 +417,5 @@ renderSubjects();
 renderPrices();
 if (isSignedIn())
   document.querySelector('[data-auth="login"]').innerHTML =
-    `Мой кабинет ${icon('arrow')}`;
+    `${role() === 'student' ? 'Моё обучение' : 'Мой кабинет'} ${icon('arrow')}`;
 if (new URLSearchParams(location.search).has('login')) openAuth('login');

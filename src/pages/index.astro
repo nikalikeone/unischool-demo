@@ -1,12 +1,8 @@
 ---
 import '@fontsource-variable/manrope';
 import '../styles/landing.css';
-const commonFeatures = [
-  'Видеоуроки и учебные материалы',
-  'Тесты с автоматической проверкой',
-  'Проверка работ и ответы учителя',
-  'Отметки и личный прогресс',
-];
+import AccountTools from '../components/AccountTools.astro';
+import { plans, subjectCountLabel } from '../scripts/plans.js';
 const faqs = [
   [
     'Можно ли посмотреть программу без регистрации?',
@@ -14,7 +10,7 @@ const faqs = [
   ],
   [
     'Кто проверяет задания?',
-    'Тесты проверяются автоматически. Развёрнутые ответы проверяет преподаватель, назначенный на урок. В обсуждении задания можно задать ему вопрос.',
+    'Тесты проверяются автоматически. Развёрнутые ответы проверяет преподаватель, закреплённый за учеником по этому предмету. В обсуждении задания можно задать ему вопрос.',
   ],
   [
     'Откроются ли материалы других классов?',
@@ -95,6 +91,7 @@ const faqs = [
         >
       </nav>
       <div class="header-actions">
+        <AccountTools />
         <button class="login-button" data-auth="login"
           >Войти <svg><use href="#l-arrow"></use></svg></button
         ><button
@@ -208,77 +205,81 @@ const faqs = [
             </h2>
           </div><div class="period-control">
             <label for="plan-period">Срок доступа</label><select
-              id="plan-period"
-              ><option value="1">1 месяц</option><option value="3"
-                >3 месяца</option
-              ><option value="6">6 месяцев</option></select
+              id="plan-period"><option value="1">1 месяц</option></select
             >
           </div>
         </div>
         <div class="plans-grid">
           {
-            [1, 2].map((n) => (
-              <article class:list={['plan-card', { 'plan-featured': n === 2 }]}>
-                {n === 2 && <span class="plan-tag">БОЛЬШЕ ВОЗМОЖНОСТЕЙ</span>}
+            plans.map((plan) => (
+              <article
+                class:list={[
+                  'plan-card',
+                  {
+                    'plan-featured': plan.id === 6,
+                    'plan-live': plan.id === 7,
+                  },
+                ]}
+              >
                 <div class="plan-intro">
                   <>
-                    <span class="plan-symbol">{n}</span>
+                    <span class="plan-symbol">
+                      {plan.id < 5 ? plan.subjects : '+'}
+                    </span>
                     <div>
                       <>
-                        <h3>Юни {n}</h3>
-                        <p>
-                          {n === 1
-                            ? 'Один предмет. Всё внимание ему.'
-                            : 'Два предмета. Больше уверенности.'}
-                        </p>
+                        <h3>{plan.name}</h3>
+                        <p>{plan.description}</p>
                       </>
                     </div>
                   </>
                 </div>
-                <>
-                  <div class="plan-price">
-                    <>
-                      <strong data-price={n}>
-                        {n === 1 ? '990' : '1 790'} ₽
-                      </strong>
-                      <span data-period-label>за 1 месяц</span>
-                    </>
-                  </div>
-                  <ul>
-                    {[
-                      n === 1
-                        ? '1 предмет на выбор в своём классе'
-                        : '2 предмета на выбор в своём классе',
-                      ...commonFeatures,
-                    ].map((text) => (
-                      <li>
-                        <svg>
-                          <use href="#l-check" />
-                        </svg>
-                        {text}
-                      </li>
-                    ))}
-                  </ul>
-                  <div class="included-guide">
-                    <svg>
-                      <use href="#l-book" />
-                    </svg>
-                    «Как учиться в Юнискул» включено
-                  </div>
-                  <button class="button orange" data-plan={n}>
-                    Выбрать и оплатить{' '}
-                    <svg>
-                      <use href="#l-arrow" />
-                    </svg>
-                  </button>
-                </>
+                <div class="plan-price">
+                  <>
+                    <strong data-price={plan.id}>
+                      {new Intl.NumberFormat('ru-RU').format(plan.monthly)} ₽
+                    </strong>
+                    <span data-period-label>за 1 месяц</span>
+                  </>
+                </div>
+                <ul>
+                  {[
+                    subjectCountLabel(plan.subjects) + ' в своём классе',
+                    ...plan.features,
+                  ].map((text) => (
+                    <li>
+                      <svg>
+                        <use href="#l-check" />
+                      </svg>
+                      {text}
+                    </li>
+                  ))}
+                </ul>
+                <div class="included-guide">
+                  <svg>
+                    <use href="#l-book" />
+                  </svg>
+                  «Как учиться в Юнискул» включено
+                </div>
+                {plan.perLesson && (
+                  <p class="plan-detail-note">
+                    Разовое онлайн-занятие — 1 399 ₽. В месячный пакет входят
+                    все занятия по расписанию по выбранному предмету.
+                  </p>
+                )}
+                <button class="button orange" data-plan={plan.id}>
+                  Выбрать тариф{' '}
+                  <svg>
+                    <use href="#l-arrow" />
+                  </svg>
+                </button>
               </article>
             ))
           }
         </div>
         <p class="pricing-note">
-          Предварительные цены для макета. Итоговые цены и сроки тарифов будут
-          согласованы.
+          Стоимость указана за месяц доступа. Сейчас работает демонстрация
+          выбора тарифа: деньги не списываются.
         </p><div class="plan-bottom">
           <span
             ><svg><use href="#l-lock"></use></svg>Перед оплатой — обязательная
@@ -334,7 +335,7 @@ const faqs = [
                 [
                   '01',
                   'Выбери своё',
-                  'Класс, один или два предмета и удобный срок доступа.',
+                  'Класс, от одного до четырёх предметов и подходящий формат обучения.',
                 ],
                 [
                   '02',
@@ -456,5 +457,6 @@ const faqs = [
       ><div id="auth-content"></div>
     </dialog>
     <script src="../scripts/landing.js"></script>
+    <script src="../scripts/account-tools.js"></script>
   </body>
 </html>

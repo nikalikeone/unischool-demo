@@ -23,6 +23,138 @@
   --line: #dfe7df;
   --serif: Playfair, Georgia, serif;
 }
+.account-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.account-icon {
+  border: 0;
+  background: transparent;
+  color: #244747;
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 7px;
+}
+.account-icon:hover {
+  background: #e6eee7;
+}
+.account-avatar {
+  background: #e9e4db;
+  font-size: 11px;
+  font-weight: 700;
+}
+.account-popover {
+  position: fixed;
+  inset: 80px 24px auto auto;
+  width: min(350px, calc(100vw - 32px));
+  margin: 0;
+  padding: 25px;
+  border: 1px solid #dfe7df;
+  border-radius: 15px;
+  color: #244747;
+  background: white;
+  box-shadow: 0 15px 45px #24474720;
+}
+.account-popover h2 {
+  font: 24px var(--serif);
+  margin: 0 0 15px;
+}
+.account-popover p {
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 12px 0;
+}
+.account-popover .button {
+  margin: 15px 0;
+}
+.account-popover #account-logout {
+  display: block;
+}
+.account-support {
+  position: fixed;
+  inset: auto 20px 20px auto;
+  margin: 0;
+  border: 1px solid #dfe7df;
+  padding: 0;
+  border-radius: 18px;
+  width: min(390px, calc(100vw - 24px));
+  color: #244747;
+  max-height: 85dvh;
+  background: white;
+}
+.account-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #dfe7df;
+}
+.account-chat-header h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.account-chat-header p {
+  font-size: 12px;
+  margin: 7px 0 0;
+  color: #778882;
+}
+.account-chat-history {
+  height: 240px;
+  overflow: auto;
+  padding: 20px;
+}
+.account-chat-history p {
+  padding: 13px;
+  background: #edf4ee;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+#account-support-form {
+  padding: 0 20px;
+  display: grid;
+  gap: 10px;
+}
+#account-support-form label {
+  font-size: 12px;
+}
+#account-support-text {
+  width: 100%;
+  border: 1px solid #dfe7df;
+  border-radius: 10px;
+  padding: 12px;
+  resize: vertical;
+  font: inherit;
+  font-size: 16px;
+}
+.account-support .demo-note {
+  padding: 0 20px 20px;
+}
+@media (max-width: 650px) {
+  .site-header:has(#account-tools:not([hidden])) {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .site-header:has(#account-tools:not([hidden])) .header-actions {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+  .account-popover {
+    top: 130px;
+  }
+  .account-support {
+    right: 12px;
+    bottom: 12px;
+  }
+}
 * {
   box-sizing: border-box;
 }
@@ -550,6 +682,8 @@ select {
   gap: 22px;
 }
 .plan-card {
+  display: flex;
+  flex-direction: column;
   padding: 32px 34px 25px;
   border: 1px solid #dde5db;
   background: #fff;
@@ -644,6 +778,26 @@ select {
   gap: 10px;
   font-size: 11px;
   color: #64816a;
+}
+.plan-card ul {
+  flex: 1;
+}
+.plan-live {
+  grid-column: 1 / -1;
+}
+.plan-live ul {
+  grid-template-columns: 1fr 1fr;
+}
+.plan-detail-note {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 0 0 18px;
+  color: #64746a;
+}
+@media (max-width: 650px) {
+  .plan-live ul {
+    grid-template-columns: 1fr;
+  }
 }
 .included-guide svg {
   width: 16px;

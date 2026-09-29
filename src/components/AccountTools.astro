@@ -1,0 +1,61 @@
+<div id="account-tools" class="account-tools" hidden>
+  <button
+    type="button"
+    id="account-support-open"
+    class="account-icon"
+    aria-label="Поддержка"
+    ><svg viewBox="0 0 24 24"
+      ><path
+        d="M21 11a9 9 0 0 1-9 9H4l-2 2V11a9.5 9.5 0 1 1 19 0ZM7 10h9M7 14h5"
+      ></path></svg
+    ></button
+  >
+  <button
+    type="button"
+    class="account-icon"
+    popovertarget="account-notices"
+    aria-label="Уведомления"
+    ><svg viewBox="0 0 24 24"
+      ><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M9 21h6"
+      ></path></svg
+    ></button
+  >
+  <button
+    type="button"
+    class="account-icon account-avatar"
+    popovertarget="account-profile"
+    id="account-profile-button"
+    aria-label="Профиль">АС</button
+  >
+</div>
+<div id="account-profile" class="account-popover" popover>
+  <h2 id="account-name">Александра Соколова</h2><p id="account-role">
+    Ученик · 7 класс
+  </p><a id="account-learning" class="button blue">Моё обучение</a><button
+    id="account-logout"
+    class="text-button">Выйти из аккаунта</button>
+</div>
+<div id="account-notices" class="account-popover" popover>
+  <h2>Уведомления</h2><div id="account-notice-content"></div>
+</div>
+<dialog id="account-support" class="account-support">
+  <div class="account-chat-header">
+    <div><h2>Поддержка Юнискул</h2><p>Поможем разобраться</p></div><button
+      id="account-support-close"
+      class="account-icon"
+      aria-label="Закрыть поддержку">×</button>
+  </div><div class="account-chat-history" id="account-chat-history">
+    <p>
+      Здравствуйте! Опишите проблему. Вопрос по учебной теме можно задать в
+      обсуждении задания.
+    </p>
+  </div><form id="account-support-form">
+    <label for="account-support-text">Сообщение поддержке</label><textarea
+      id="account-support-text"
+      maxlength="2000"
+      required
+      rows="3"
+      placeholder="Что не получается?"></textarea><button class="button blue"
+      >Отправить</button>
+  </form><p class="demo-note">Демо: сообщения не отправляются сотрудникам.</p>
+</dialog>
