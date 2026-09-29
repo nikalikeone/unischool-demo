@@ -59,8 +59,8 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
         ><a href={`${base}learn/`} class="teacher-nav"
           >↗ Посмотреть глазами ученика</a
         ><div class="teacher-hint">
-          <strong>Ваш учебный класс</strong><p>
-            Александра Соколова<br />2 задания · 1 преподаватель
+          <strong>Закреплённые ученики</strong><p>
+            Александра Соколова<br />Математика · 7 класс
           </p>
         </div><p class="teacher-local">
           Демоверсия. Работы и ответы связаны с учеником только в этом браузере.
@@ -73,7 +73,12 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
           Проверяйте работы, отвечайте на вопросы и помогайте двигаться дальше.
         </p><a class="dashboard-link" href={`${base}learn/`}
           >Посмотреть глазами ученика ↗</a
-        ><div id="teacher-stats" class="teacher-stats"></div><div
+        ><section
+          id="teacher-assignments"
+          class="teacher-assignments"
+          aria-label="Назначения преподавателя"
+        >
+        </section><div id="teacher-stats" class="teacher-stats"></div><div
           class="teacher-toolbar"
         >
           <h2>Работы учеников</h2><label
@@ -102,9 +107,11 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
         <span class="avatar">ЕА</span><div>
           <strong>Елена Андреевна</strong><p>Математика · 7 класс</p>
         </div>
-      </div><p>Назначена на оба задания курса «Линейные уравнения».</p><button
-        class="dashboard-link"
-        id="teacher-logout">Выйти из аккаунта ↗</button
+      </div><p>
+        Закреплена за математикой Александры Соколовой, 7 класс. Проверяет её
+        работы и отвечает на вопросы по этому предмету.
+      </p><button class="dashboard-link" id="teacher-logout"
+        >Выйти из аккаунта ↗</button
       ><small class="muted">Демонстрационный преподаватель</small>
     </div>
     <div id="teacher-notices" class="popover notifications" popover>

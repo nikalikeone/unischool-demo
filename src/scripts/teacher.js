@@ -1,4 +1,9 @@
-import { requireSession, signOut } from './auth.js';
+import { requireSession, signOut, currentProfileId } from './auth.js';
+import {
+  canTeach,
+  teachingAssignments,
+  demoCourse,
+} from './teaching-assignments.js';
 requireSession('teacher');
 const $ = (s) => document.querySelector(s);
 const key = 'unischool-prototype-v1';
@@ -20,7 +25,15 @@ const names = {
 let selected = 0,
   filter = 'all';
 const drafts = ['', ''];
+function assignedWork() {
+  return canTeach(
+    currentProfileId(),
+    demoCourse.subjectId,
+    demoCourse.studentId,
+  );
+}
 function read() {
+  if (!assignedWork()) return {};
   try {
     return JSON.parse(localStorage.getItem(key) || '{}');
   } catch {
@@ -40,9 +53,26 @@ function messages(data, i) {
     : [];
 }
 function write(data) {
+  if (!assignedWork())
+    throw new Error('Работа не назначена этому преподавателю');
   localStorage.setItem(key, JSON.stringify(data));
 }
 function render() {
+  const assignments = teachingAssignments.filter(
+    (a) => a.teacherId === currentProfileId(),
+  );
+  $('#teacher-assignments').innerHTML =
+    `<span class="eyebrow">МОИ НАЗНАЧЕНИЯ</span><h2>Предмет и ученики</h2>${assignments.map((a) => `<p><strong>${escape(a.subjectName)} · ${a.grade} класс</strong><br/>${a.studentIds.map((id) => escape(id === 'alexandra-demo' ? 'Александра Соколова' : id)).join(', ')}</p>`).join('') || '<p>Назначений пока нет.</p>'}<small>Преподаватель закрепляется за предметом и одним или несколькими учениками, а не за отдельным уроком. В кабинете — только работы назначенных учеников по этому предмету.</small>`;
+  if (!assignedWork()) {
+    $('#teacher-stats').innerHTML = '';
+    $('#work-list').innerHTML =
+      '<p class="review-empty">У вас пока нет назначенных работ по этому предмету.</p>';
+    $('#review-panel').innerHTML = '';
+    $('#teacher-notice-list').innerHTML =
+      '<p class="teacher-local">Нет уведомлений по назначенным работам.</p>';
+    selected = null;
+    return;
+  }
   const data = read();
   const statuses = [status(data, 0), status(data, 1)];
   $('#teacher-stats').innerHTML = [
@@ -116,6 +146,7 @@ function render() {
     };
 }
 function send(decision) {
+  if (!assignedWork() || ![0, 1].includes(selected)) return render();
   const data = read(),
     i = selected,
     s = status(data, i);

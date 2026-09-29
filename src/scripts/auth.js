@@ -25,6 +25,10 @@ export function role() {
     return 'student';
   }
 }
+export function currentProfileId() {
+  if (!isSignedIn()) return null;
+  return JSON.parse(localStorage.getItem(sessionKey)).profile;
+}
 export function homeRoute() {
   return `${base}${role() === 'teacher' ? 'teacher' : 'learn'}/`;
 }

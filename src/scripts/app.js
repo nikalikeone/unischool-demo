@@ -1,4 +1,5 @@
 import { requireSession, signOut, role, base } from './auth.js';
+import { assignedTeacher, demoCourse } from './teaching-assignments.js';
 requireSession();
 const $ = (selector) => document.querySelector(selector);
 const icon = (name) => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
@@ -151,7 +152,10 @@ function renderSidebar() {
   $('#course-progress').value = count;
 }
 function teacherCard() {
-  return `<aside class="teacher-card"><span class="eyebrow">РЯДОМ С ТОБОЙ</span><div class="teacher-line"><span class="teacher-avatar">ЕА</span><div><strong>Елена Андреевна</strong><small>Преподаватель математики</small></div></div><p>Если что-то непонятно, задай вопрос в обсуждении домашнего задания.</p></aside>`;
+  const teacher = assignedTeacher(demoCourse.subjectId, demoCourse.studentId);
+  if (!teacher)
+    return '<aside class="teacher-card"><p>Преподаватель по этому предмету пока не назначен.</p></aside>';
+  return `<aside class="teacher-card"><span class="eyebrow">РЯДОМ С ТОБОЙ</span><div class="teacher-line"><span class="teacher-avatar">${escapeHtml(teacher.initials)}</span><div><strong>${escapeHtml(teacher.name)}</strong><small>Преподаватель математики</small></div></div><p>Если что-то непонятно, задай вопрос в обсуждении домашнего задания.</p></aside>`;
 }
 function videoContent() {
   return `<section class="video-stage" aria-label="Демонстрация видеоплеера"><div class="video-copy"><span class="video-label">АЛГЕБРА БЕЗ СЛОЖНОСТЕЙ</span><h2>У каждого<br/>неизвестного<br/>есть <em>решение.</em></h2><p>Начнём с простого — научимся находить неизвестное число.</p></div><div class="algebra-art" aria-hidden="true"><div class="orbit"></div><span class="art-star">✳</span><div class="formula-card">2<b>x</b> + 3 = 11</div><div class="formula-mini">x = ?</div></div><button id="play-main" class="play-main" aria-label="Воспроизвести демонстрацию">${icon('play')}</button><div class="video-chapter"><span>01</span><div id="video-step">Знакомимся с неизвестным</div></div><div class="player-controls"><button id="play-control" aria-label="Воспроизвести демонстрацию">${icon('play')}</button><span id="video-time">0:00 / 0:12</span><input id="video-progress" type="range" min="0" max="12" value="0" step="0.1" aria-label="Позиция демонстрации"/><select id="video-speed" aria-label="Скорость демонстрации"><option value="1">1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select><button id="fullscreen" aria-label="Полноэкранный режим">⛶</button></div></section><p class="video-caption">Демонстрация плеера · Учебное видео будет добавлено при наполнении курса</p><div class="lesson-below"><section><h2 class="section-title">Сегодня разберёмся</h2><p class="body-copy">Уравнение похоже на весы: обе его части должны оставаться равными. Научимся сохранять равновесие и находить x.</p><ul class="learning-points"><li>${icon('check')}Что называют корнем уравнения</li><li>${icon('check')}Как перенести число в другую часть</li><li>${icon('check')}Как проверить своё решение</li></ul><button class="material-download" id="download-notes">${icon('paper')}<span>Краткий конспект урока<small>Текстовый файл · правила и примеры</small></span><span aria-hidden="true">↓</span></button></section>${teacherCard()}</div>`;

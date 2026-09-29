@@ -1,3 +1,26 @@
+.teacher-assignments {
+  padding: 22px 25px;
+  margin-top: 20px;
+  background: #eaf3ed;
+  border: 1px solid #d6e6df;
+  border-radius: 14px;
+}
+.teacher-assignments h2 {
+  font: 25px var(--serif);
+  margin: 10px 0 14px;
+}
+.teacher-assignments p {
+  font-size: 13px;
+  line-height: 1.9;
+}
+.teacher-assignments small {
+  display: block;
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #55706a;
+  max-width: 720px;
+}
 .teacher-layout {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
